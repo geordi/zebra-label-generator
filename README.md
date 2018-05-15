@@ -1,6 +1,6 @@
 # Zebra Label Generator
 
-This is super simple generator of labels in EPLformat that is used in Zebra printers.
+This is a super simple generator of labels in EPL format that is used in Zebra printers.
 
 ## Printer Driver
 
