@@ -1,11 +1,14 @@
+import argparse
 import os
+
+DATA_DIR = 'data'
 
 
 def print_stats(labels, no_input_files):
-    print('Generated {} labels from {} files.'.format(len(labels), no_input_files))
+    print('Generated {} labels from {} files.'.format(labels, no_input_files))
 
 
-def generate_label(label):
+def generate_label_in_epl_format(label):
     label_str = 'N\nA20,10,0,4,1,1,N,"room: {}"\nA20,50,0,4,1,1,N,"id: {}"\nA20,90,0,4,1,1,N,"sn: {}"\nP1'
 
     return label_str.format(label['room'], label['iid'], label['sn'])
@@ -16,22 +19,32 @@ def generate_labels_for_file(filename, room):
     with open(filename, 'rt') as f:
         for line in f:
             line = line.strip()
-            print(line)
             if not line.startswith('#'):
                 iid, _, name, sn, *_ = line.split(';')
                 labels.append({'iid': iid, 'sn': sn, 'room': room})
     return labels
 
 
-def generate_labels_for_files_in_dir(directory):
-    filenames = os.listdir(directory)
-    labels_out = []
-    for filename in filenames:
-        labels = generate_labels_for_file(os.path.join('data', filename), filename.split('.')[0].upper())
-        labels = [generate_label(label) for label in labels]
-        labels_out.extend(labels)
+def generate_labels(directory, filenames, separate=False):
+    no_labels = 0
+    labels_all = []
 
-    return labels_out, len(filenames)
+    for filename in filenames:
+        filename_with_dir = os.path.join(DATA_DIR, filename)
+        room = filename.split('.')[0]
+
+        labels = generate_labels_for_file(filename_with_dir, room.upper())
+        labels = [generate_label_in_epl_format(label) for label in labels]
+        labels_all.extend(labels)
+        no_labels += len(labels)
+
+        if separate:
+            write_labels_to_file(labels, room + '.epl')
+
+    if not separate:
+        write_labels_to_file(labels_all, 'printable_labels.epl')
+
+    return no_labels, len(filenames)
 
 
 def write_labels_to_file(labels, filename):
@@ -42,10 +55,18 @@ def write_labels_to_file(labels, filename):
 
 
 def main():
-    labels, no_input_files = generate_labels_for_files_in_dir('data')
-    write_labels_to_file(labels, 'printable_labels.epl')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--separate', help='Create output labels in separate files according to input files', action='store_true')
+    args = parser.parse_args()
 
-    print_stats(labels, no_input_files)
+    filenames = os.listdir(DATA_DIR)
+
+    if args.separate:
+        no_labels, no_input_files = generate_labels(DATA_DIR, filenames, separate=True)
+    else:
+        no_labels, no_input_files = generate_labels(DATA_DIR, filenames)
+
+    print_stats(no_labels, no_input_files)
 
 if __name__ == '__main__':
     main()
