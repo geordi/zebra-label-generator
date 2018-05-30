@@ -1,6 +1,10 @@
 import os
 
 
+def print_stats(labels, no_input_files):
+    print('Generated {} labels from {} files.'.format(len(labels), no_input_files))
+
+
 def generate_label(label):
     label_str = 'N\nA20,10,0,4,1,1,N,"room: {}"\nA20,50,0,4,1,1,N,"id: {}"\nA20,90,0,4,1,1,N,"sn: {}"\nP1'
 
@@ -27,7 +31,7 @@ def generate_labels_for_files_in_dir(directory):
         labels = [generate_label(label) for label in labels]
         labels_out.extend(labels)
 
-    return labels_out
+    return labels_out, len(filenames)
 
 
 def write_labels_to_file(labels, filename):
@@ -38,9 +42,10 @@ def write_labels_to_file(labels, filename):
 
 
 def main():
-    labels = generate_labels_for_files_in_dir('data')
+    labels, no_input_files = generate_labels_for_files_in_dir('data')
     write_labels_to_file(labels, 'printable_labels.epl')
 
+    print_stats(labels, no_input_files)
 
 if __name__ == '__main__':
     main()
